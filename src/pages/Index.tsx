@@ -1,9 +1,10 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Header from '@/components/Header';
 import Sidebar from '@/components/Sidebar';
 import VideoCard from '@/components/VideoCard';
 import VideoPlayer from '@/components/VideoPlayer';
 import UploadVideo from '@/components/UploadVideo';
+import AuthModal from '@/components/AuthModal';
 import { cn } from '@/lib/utils';
 
 const mockVideos = [
@@ -85,10 +86,36 @@ const Index = () => {
   const [activeSection, setActiveSection] = useState('home');
   const [selectedVideo, setSelectedVideo] = useState<typeof mockVideos[0] | null>(null);
   const [sidebarCollapsed] = useState(false);
+  const [showAuthModal, setShowAuthModal] = useState(false);
+  const [user, setUser] = useState<string | null>(null);
+
+  useEffect(() => {
+    const savedUser = localStorage.getItem('user');
+    if (savedUser) {
+      setUser(savedUser);
+    } else {
+      setShowAuthModal(true);
+    }
+  }, []);
+
+  const handleAuthSuccess = (username: string) => {
+    setUser(username);
+    localStorage.setItem('user', username);
+  };
+
+  const handleLogout = () => {
+    setUser(null);
+    localStorage.removeItem('user');
+    setShowAuthModal(true);
+  };
 
   return (
-    <div className="min-h-screen bg-background dark">
-      <Header />
+    <div className="min-h-screen bg-background">
+      <Header 
+        user={user}
+        onAuthClick={() => setShowAuthModal(true)}
+        onLogout={handleLogout}
+      />
       <Sidebar activeSection={activeSection} onSectionChange={setActiveSection} />
 
       <main
@@ -141,6 +168,13 @@ const Index = () => {
         <VideoPlayer
           video={selectedVideo}
           onClose={() => setSelectedVideo(null)}
+        />
+      )}
+
+      {showAuthModal && (
+        <AuthModal
+          onClose={() => setShowAuthModal(false)}
+          onSuccess={handleAuthSuccess}
         />
       )}
     </div>
