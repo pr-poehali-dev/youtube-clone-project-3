@@ -1,5 +1,3 @@
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import Icon from '@/components/ui/icon';
 import { cn } from '@/lib/utils';
 
 interface VideoCardProps {
@@ -35,10 +33,9 @@ const VideoCard = ({ video, onClick }: VideoCardProps) => {
       </div>
 
       <div className="flex gap-3">
-        <Avatar className="w-9 h-9 shrink-0">
-          <AvatarImage src={video.channelAvatar} />
-          <AvatarFallback>{video.channel[0]}</AvatarFallback>
-        </Avatar>
+        <div className="w-9 h-9 rounded-full bg-muted flex items-center justify-center font-semibold text-sm shrink-0">
+          {video.channel[0]}
+        </div>
 
         <div className="flex-1 min-w-0">
           <h3 className="font-medium text-sm line-clamp-2 mb-1 group-hover:text-primary transition-colors">

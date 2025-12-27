@@ -1,7 +1,6 @@
 import { useState } from 'react';
 import Icon from '@/components/ui/icon';
 import { Input } from '@/components/ui/input';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 
 const Header = () => {
   const [searchQuery, setSearchQuery] = useState('');
@@ -36,10 +35,9 @@ const Header = () => {
           <button className="hover:bg-muted p-2 rounded-full transition-colors">
             <Icon name="Bell" size={24} />
           </button>
-          <Avatar>
-            <AvatarImage src="" />
-            <AvatarFallback>ПН</AvatarFallback>
-          </Avatar>
+          <div className="w-10 h-10 rounded-full bg-muted flex items-center justify-center font-semibold">
+            ПН
+          </div>
         </div>
       </div>
     </header>
