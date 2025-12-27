@@ -1,26 +1,31 @@
-import { cn } from '@/lib/utils';
-
 interface VideoCardProps {
   video: {
     id: string;
     title: string;
     thumbnail: string;
     channel: string;
+    channelId: string;
     channelAvatar: string;
     views: string;
     uploadTime: string;
     duration: string;
   };
   onClick: () => void;
+  onChannelClick?: (channelId: string) => void;
 }
 
-const VideoCard = ({ video, onClick }: VideoCardProps) => {
+const VideoCard = ({ video, onClick, onChannelClick }: VideoCardProps) => {
+  const handleChannelClick = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    onChannelClick?.(video.channelId);
+  };
+
   return (
-    <div
-      onClick={onClick}
-      className="group cursor-pointer animate-fade-in"
-    >
-      <div className="relative aspect-video rounded-xl overflow-hidden bg-muted mb-3">
+    <div className="group animate-fade-in">
+      <div
+        onClick={onClick}
+        className="relative aspect-video rounded-xl overflow-hidden bg-muted mb-3 cursor-pointer"
+      >
         <img
           src={video.thumbnail}
           alt={video.title}
@@ -33,15 +38,30 @@ const VideoCard = ({ video, onClick }: VideoCardProps) => {
       </div>
 
       <div className="flex gap-3">
-        <div className="w-9 h-9 rounded-full bg-muted flex items-center justify-center font-semibold text-sm shrink-0">
-          {video.channel[0]}
+        <div
+          onClick={handleChannelClick}
+          className="w-9 h-9 rounded-full overflow-hidden shrink-0 cursor-pointer hover:ring-2 hover:ring-primary transition-all"
+        >
+          <img
+            src={video.channelAvatar}
+            alt={video.channel}
+            className="w-full h-full object-cover"
+          />
         </div>
 
         <div className="flex-1 min-w-0">
-          <h3 className="font-medium text-sm line-clamp-2 mb-1 group-hover:text-primary transition-colors">
+          <h3
+            onClick={onClick}
+            className="font-medium text-sm line-clamp-2 mb-1 group-hover:text-primary transition-colors cursor-pointer"
+          >
             {video.title}
           </h3>
-          <p className="text-xs text-muted-foreground">{video.channel}</p>
+          <p
+            onClick={handleChannelClick}
+            className="text-xs text-muted-foreground hover:text-foreground transition-colors cursor-pointer"
+          >
+            {video.channel}
+          </p>
           <div className="flex items-center gap-1 text-xs text-muted-foreground">
             <span>{video.views} просмотров</span>
             <span>•</span>

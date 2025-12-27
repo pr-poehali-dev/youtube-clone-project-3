@@ -1,6 +1,5 @@
 import { useState } from 'react';
 import Icon from '@/components/ui/icon';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { cn } from '@/lib/utils';
@@ -15,23 +14,34 @@ interface Comment {
   isModerated?: boolean;
 }
 
-interface VideoPlayerProps {
-  video: {
-    id: string;
-    title: string;
-    channel: string;
-    channelAvatar: string;
-    views: string;
-    uploadTime: string;
-    likes: string;
-    description: string;
-  };
-  onClose: () => void;
+interface Video {
+  id: string;
+  title: string;
+  channel: string;
+  channelId: string;
+  channelAvatar: string;
+  views: string;
+  uploadTime: string;
+  duration: string;
+  likes: number;
+  dislikes: number;
+  description: string;
+  thumbnail: string;
 }
 
-const VideoPlayer = ({ video, onClose }: VideoPlayerProps) => {
+interface VideoPlayerProps {
+  video: Video;
+  onClose: () => void;
+  onChannelClick?: (channelId: string) => void;
+  recommendedVideos?: Video[];
+}
+
+const VideoPlayer = ({ video, onClose, onChannelClick, recommendedVideos = [] }: VideoPlayerProps) => {
   const [liked, setLiked] = useState(false);
+  const [disliked, setDisliked] = useState(false);
   const [subscribed, setSubscribed] = useState(false);
+  const [likesCount, setLikesCount] = useState(video.likes);
+  const [dislikesCount, setDislikesCount] = useState(video.dislikes);
   const [commentText, setCommentText] = useState('');
   const [comments, setComments] = useState<Comment[]>([
     {
@@ -71,6 +81,41 @@ const VideoPlayer = ({ video, onClose }: VideoPlayerProps) => {
     setComments(comments.filter((c) => c.id !== commentId));
   };
 
+  const handleLike = () => {
+    if (liked) {
+      setLiked(false);
+      setLikesCount(likesCount - 1);
+    } else {
+      setLiked(true);
+      setLikesCount(likesCount + 1);
+      if (disliked) {
+        setDisliked(false);
+        setDislikesCount(dislikesCount - 1);
+      }
+    }
+  };
+
+  const handleDislike = () => {
+    if (disliked) {
+      setDisliked(false);
+      setDislikesCount(dislikesCount - 1);
+    } else {
+      setDisliked(true);
+      setDislikesCount(dislikesCount + 1);
+      if (liked) {
+        setLiked(false);
+        setLikesCount(likesCount - 1);
+      }
+    }
+  };
+
+  const handleDownload = () => {
+    const link = document.createElement('a');
+    link.href = video.thumbnail;
+    link.download = `${video.title}.mp4`;
+    link.click();
+  };
+
   return (
     <div className="fixed inset-0 bg-background z-50 overflow-y-auto animate-fade-in">
       <div className="min-h-screen pb-20">
@@ -94,12 +139,23 @@ const VideoPlayer = ({ video, onClose }: VideoPlayerProps) => {
 
               <div className="flex items-center justify-between mb-4 flex-wrap gap-4">
                 <div className="flex items-center gap-4">
-                  <Avatar className="w-10 h-10">
-                    <AvatarImage src={video.channelAvatar} />
-                    <AvatarFallback>{video.channel[0]}</AvatarFallback>
-                  </Avatar>
+                  <div
+                    onClick={() => onChannelClick?.(video.channelId)}
+                    className="w-10 h-10 rounded-full overflow-hidden cursor-pointer hover:ring-2 hover:ring-primary transition-all"
+                  >
+                    <img
+                      src={video.channelAvatar}
+                      alt={video.channel}
+                      className="w-full h-full object-cover"
+                    />
+                  </div>
                   <div>
-                    <p className="font-semibold">{video.channel}</p>
+                    <p
+                      onClick={() => onChannelClick?.(video.channelId)}
+                      className="font-semibold cursor-pointer hover:text-primary transition-colors"
+                    >
+                      {video.channel}
+                    </p>
                     <p className="text-sm text-muted-foreground">1.2M подписчиков</p>
                   </div>
                   <Button
@@ -111,21 +167,41 @@ const VideoPlayer = ({ video, onClose }: VideoPlayerProps) => {
                   </Button>
                 </div>
 
-                <div className="flex items-center gap-2">
-                  <Button
-                    onClick={() => setLiked(!liked)}
-                    variant="secondary"
-                    className={cn(
-                      'rounded-full transition-all duration-200',
-                      liked && 'bg-primary text-primary-foreground hover:bg-primary/90'
-                    )}
-                  >
-                    <Icon name={liked ? 'ThumbsUp' : 'ThumbsUp'} size={20} />
-                    <span className="ml-2">{video.likes}</span>
-                  </Button>
+                <div className="flex items-center gap-2 flex-wrap">
+                  <div className="flex items-center bg-secondary rounded-full overflow-hidden">
+                    <Button
+                      onClick={handleLike}
+                      variant="ghost"
+                      size="sm"
+                      className={cn(
+                        'rounded-none rounded-l-full transition-all duration-200',
+                        liked && 'bg-primary/20 text-primary'
+                      )}
+                    >
+                      <Icon name="ThumbsUp" size={20} />
+                      <span className="ml-2">{likesCount.toLocaleString()}</span>
+                    </Button>
+                    <div className="w-px h-6 bg-border" />
+                    <Button
+                      onClick={handleDislike}
+                      variant="ghost"
+                      size="sm"
+                      className={cn(
+                        'rounded-none rounded-r-full transition-all duration-200',
+                        disliked && 'bg-destructive/20 text-destructive'
+                      )}
+                    >
+                      <Icon name="ThumbsDown" size={20} />
+                      <span className="ml-2">{dislikesCount.toLocaleString()}</span>
+                    </Button>
+                  </div>
                   <Button variant="secondary" className="rounded-full">
                     <Icon name="Share2" size={20} />
                     <span className="ml-2">Поделиться</span>
+                  </Button>
+                  <Button onClick={handleDownload} variant="secondary" className="rounded-full">
+                    <Icon name="Download" size={20} />
+                    <span className="ml-2">Скачать</span>
                   </Button>
                 </div>
               </div>
@@ -143,9 +219,9 @@ const VideoPlayer = ({ video, onClose }: VideoPlayerProps) => {
                 </h2>
 
                 <div className="flex gap-3 mb-6">
-                  <Avatar className="w-10 h-10">
-                    <AvatarFallback>ВЫ</AvatarFallback>
-                  </Avatar>
+                  <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center font-semibold text-primary shrink-0">
+                    ВЫ
+                  </div>
                   <div className="flex-1">
                     <Textarea
                       placeholder="Добавьте комментарий..."
@@ -173,10 +249,9 @@ const VideoPlayer = ({ video, onClose }: VideoPlayerProps) => {
                 <div className="space-y-4">
                   {comments.map((comment) => (
                     <div key={comment.id} className="flex gap-3 group">
-                      <Avatar className="w-10 h-10">
-                        <AvatarImage src={comment.avatar} />
-                        <AvatarFallback>{comment.author[0]}</AvatarFallback>
-                      </Avatar>
+                      <div className="w-10 h-10 rounded-full bg-muted flex items-center justify-center font-semibold text-sm shrink-0">
+                        {comment.author[0]}
+                      </div>
                       <div className="flex-1">
                         <div className="flex items-center gap-2 mb-1">
                           <span className="font-semibold text-sm">{comment.author}</span>
@@ -211,17 +286,33 @@ const VideoPlayer = ({ video, onClose }: VideoPlayerProps) => {
             <div className="hidden lg:block">
               <h3 className="font-bold mb-4">Рекомендации</h3>
               <div className="space-y-3">
-                {[1, 2, 3, 4, 5].map((i) => (
-                  <div key={i} className="flex gap-2 cursor-pointer group">
+                {recommendedVideos.slice(0, 8).map((recVideo) => (
+                  <div
+                    key={recVideo.id}
+                    onClick={() => {
+                      onClose();
+                      setTimeout(() => {
+                        window.location.reload();
+                      }, 100);
+                    }}
+                    className="flex gap-2 cursor-pointer group"
+                  >
                     <div className="w-40 aspect-video bg-muted rounded-lg overflow-hidden shrink-0">
-                      <div className="w-full h-full bg-gradient-to-br from-primary/20 to-accent/20" />
+                      <img
+                        src={recVideo.thumbnail}
+                        alt={recVideo.title}
+                        className="w-full h-full object-cover group-hover:scale-105 transition-transform"
+                      />
+                      <div className="absolute bottom-1 right-1 bg-black/80 text-white text-xs px-1 py-0.5 rounded">
+                        {recVideo.duration}
+                      </div>
                     </div>
                     <div className="flex-1 min-w-0">
-                      <h4 className="text-sm font-medium line-clamp-2 group-hover:text-primary transition-colors">
-                        Похожее видео #{i}
+                      <h4 className="text-sm font-medium line-clamp-2 group-hover:text-primary transition-colors mb-1">
+                        {recVideo.title}
                       </h4>
-                      <p className="text-xs text-muted-foreground">Канал</p>
-                      <p className="text-xs text-muted-foreground">100K просмотров</p>
+                      <p className="text-xs text-muted-foreground">{recVideo.channel}</p>
+                      <p className="text-xs text-muted-foreground">{recVideo.views} просмотров</p>
                     </div>
                   </div>
                 ))}

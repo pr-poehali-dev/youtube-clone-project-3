@@ -5,6 +5,7 @@ import VideoCard from '@/components/VideoCard';
 import VideoPlayer from '@/components/VideoPlayer';
 import UploadVideo from '@/components/UploadVideo';
 import AuthModal from '@/components/AuthModal';
+import ChannelPage from '@/components/ChannelPage';
 import { cn } from '@/lib/utils';
 
 const mockVideos = [
@@ -13,11 +14,13 @@ const mockVideos = [
     title: 'Как создать современное веб-приложение на React',
     thumbnail: 'https://images.unsplash.com/photo-1633356122544-f134324a6cee?w=800',
     channel: 'WebDev Pro',
-    channelAvatar: '',
+    channelId: 'webdev-pro',
+    channelAvatar: 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=100',
     views: '234K',
     uploadTime: '2 дня назад',
     duration: '15:32',
-    likes: '12K',
+    likes: 12000,
+    dislikes: 150,
     description: 'В этом видео мы разберем, как создать современное веб-приложение с использованием React, TypeScript и современных инструментов разработки.',
   },
   {
@@ -25,11 +28,13 @@ const mockVideos = [
     title: 'Топ-10 советов по оптимизации производительности',
     thumbnail: 'https://images.unsplash.com/photo-1498050108023-c5249f4df085?w=800',
     channel: 'Code Masters',
-    channelAvatar: '',
+    channelId: 'code-masters',
+    channelAvatar: 'https://images.unsplash.com/photo-1599566150163-29194dcaad36?w=100',
     views: '156K',
     uploadTime: '5 дней назад',
     duration: '22:45',
-    likes: '8.5K',
+    likes: 8500,
+    dislikes: 200,
     description: 'Узнайте о лучших практиках оптимизации производительности веб-приложений.',
   },
   {
@@ -37,11 +42,13 @@ const mockVideos = [
     title: 'Дизайн системы с нуля: полное руководство',
     thumbnail: 'https://images.unsplash.com/photo-1551650975-87deedd944c3?w=800',
     channel: 'Design Academy',
-    channelAvatar: '',
+    channelId: 'design-academy',
+    channelAvatar: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=100',
     views: '89K',
     uploadTime: '1 неделю назад',
     duration: '18:20',
-    likes: '5.2K',
+    likes: 5200,
+    dislikes: 80,
     description: 'Создаем дизайн систему для вашего проекта с правильными компонентами и токенами.',
   },
   {
@@ -49,11 +56,13 @@ const mockVideos = [
     title: 'AI и машинное обучение: введение для начинающих',
     thumbnail: 'https://images.unsplash.com/photo-1677442136019-21780ecad995?w=800',
     channel: 'AI Learning',
-    channelAvatar: '',
+    channelId: 'ai-learning',
+    channelAvatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=100',
     views: '412K',
     uploadTime: '3 дня назад',
     duration: '25:10',
-    likes: '18K',
+    likes: 18000,
+    dislikes: 300,
     description: 'Простое введение в мир искусственного интеллекта и машинного обучения.',
   },
   {
@@ -61,11 +70,13 @@ const mockVideos = [
     title: 'Продвинутые техники CSS: Grid и Flexbox',
     thumbnail: 'https://images.unsplash.com/photo-1523437113738-bbd3cc89fb19?w=800',
     channel: 'CSS Wizards',
-    channelAvatar: '',
+    channelId: 'css-wizards',
+    channelAvatar: 'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=100',
     views: '178K',
     uploadTime: '1 день назад',
     duration: '20:15',
-    likes: '9.8K',
+    likes: 9800,
+    dislikes: 120,
     description: 'Мастер-класс по использованию CSS Grid и Flexbox для создания современных макетов.',
   },
   {
@@ -73,11 +84,13 @@ const mockVideos = [
     title: 'Backend разработка на Node.js и Express',
     thumbnail: 'https://images.unsplash.com/photo-1627398242454-45a1465c2479?w=800',
     channel: 'Backend Hub',
-    channelAvatar: '',
+    channelId: 'backend-hub',
+    channelAvatar: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=100',
     views: '267K',
     uploadTime: '4 дня назад',
     duration: '30:45',
-    likes: '14K',
+    likes: 14000,
+    dislikes: 180,
     description: 'Полный курс по созданию backend приложений на Node.js с использованием Express.',
   },
 ];
@@ -85,6 +98,7 @@ const mockVideos = [
 const Index = () => {
   const [activeSection, setActiveSection] = useState('home');
   const [selectedVideo, setSelectedVideo] = useState<typeof mockVideos[0] | null>(null);
+  const [selectedChannelId, setSelectedChannelId] = useState<string | null>(null);
   const [sidebarCollapsed] = useState(false);
   const [showAuthModal, setShowAuthModal] = useState(false);
   const [user, setUser] = useState<string | null>(null);
@@ -144,6 +158,7 @@ const Index = () => {
                     key={video.id}
                     video={video}
                     onClick={() => setSelectedVideo(video)}
+                    onChannelClick={(channelId) => setSelectedChannelId(channelId)}
                   />
                 ))}
               </div>
@@ -164,10 +179,27 @@ const Index = () => {
         </div>
       </main>
 
-      {selectedVideo && (
+      {selectedVideo && !selectedChannelId && (
         <VideoPlayer
           video={selectedVideo}
           onClose={() => setSelectedVideo(null)}
+          onChannelClick={(channelId) => {
+            setSelectedVideo(null);
+            setSelectedChannelId(channelId);
+          }}
+          recommendedVideos={mockVideos.filter(v => v.id !== selectedVideo.id)}
+        />
+      )}
+
+      {selectedChannelId && (
+        <ChannelPage
+          channelId={selectedChannelId}
+          onClose={() => setSelectedChannelId(null)}
+          onVideoClick={(video) => {
+            setSelectedChannelId(null);
+            setSelectedVideo(video);
+          }}
+          allVideos={mockVideos}
         />
       )}
 
